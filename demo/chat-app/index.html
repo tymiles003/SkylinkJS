@@ -14,9 +14,9 @@
 </head>
 
 <body ng-app="Skylink" ng-controller="RoomController as ctrl">
-	<!-- !! navigation -->
+  <!-- !! navigation -->
   <nav class="navbar navbar-default navbar-static-top" role="navigation">
-   <div class="container-fluid container-wrapper">
+    <div class="container-fluid container-wrapper">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#top-navbar">
           <span class="sr-only">Toggle navigation</span>
@@ -25,16 +25,26 @@
           <span class="icon-bar"></span>
         </button>
         <!-- logo -->
-        <a href="#"> <span class="navbar-brand">Chat Demo with Skylink</span> </a>
+        <a href="#">
+          <img src="img/logo.svg" class="navbar-brand">
+        </a>
       </div>
 
       <div id="top-navbar" class="collapse navbar-collapse navbar-right">
         <ul class="nav navbar-nav">
-        	<!-- navigation items -->
-          <li class="{{ctrl.activePages.lobby}}" ng-show="ctrl.inLobby"> <a href="##lobby"> <i class="fa fa-list"></i>Lobby Overview</a> </li>
-          <li class="{{ctrl.activePages.profile}}" ng-show="ctrl.inLobby"> <a href="##profile"> <i class="fa fa-user"></i>My Profile </a> </li>
-          <li class="" ng-show="ctrl.inLobby" ng-click="ctrl.leaveRoom()"> <a href="##logout"> <i class="fa fa-sign-out"></i>Exit Network</a> </li>
-          <li class="active" ng-hide="ctrl.inLobby"> <a href="##login"> <i class="fa fa-sign-in"></i>Connect to Network </a> </li>
+          <!-- navigation items -->
+          <li class="{{ctrl.activePages.lobby}}" ng-show="ctrl.inLobby">
+            <a href="##lobby"> <i class="fa fa-list"></i>Lobby Overview</a>
+          </li>
+          <li class="{{ctrl.activePages.profile}}" ng-show="ctrl.inLobby">
+            <a href="##profile"> <i class="fa fa-user"></i>My Profile</a>
+          </li>
+          <li class="" ng-show="ctrl.inLobby" ng-click="ctrl.leaveRoom()">
+            <a href="##logout"> <i class="fa fa-sign-out"></i>Exit Network</a>
+          </li>
+          <li class="active" ng-hide="ctrl.inLobby">
+            <a href="##login"> <i class="fa fa-sign-in"></i>Connect to Network</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -42,76 +52,180 @@
 
   <!-- !! view -->
   <div class="page container-wrapper container-fluid">
-  	<!-- !!! section: login -->
-  	<section id="login-panel" class="container container-fixed" ng-hide="ctrl.inLobby || ctrl.inRoom">
-  		<div class="panel panel-default">
-			  <div class="panel-body">
-			    <h3>
-			    	<i class="fa fa-globe"></i>
-			    	Connect to Network
-			    	<small>Join with other peers to a lobby</small>
-			    </h3>
-			    <hr>
-			    <div class="form-group">
-			    	<input ng-model="ctrl.apiKey" class="form-control" type="text" placeholder="Lobby API Key">
-			    </div>
-			    <div class="form-group">
-			    	<input ng-model="ctrl.username" class="form-control" type="text" placeholder="Your Name">
-			    </div>
-			    <button class="btn btn-default" type="button" ng-click="ctrl.joinLobby()">
-			    	<i class="fa fa-arrow-right"></i>
-			    	Connect to server
-			    </button>
-			  </div>
-			</div>
-		</section>
+    <!-- !!! section: login -->
+    <section id="login-panel" class="container container-fixed" ng-hide="ctrl.inLobby || ctrl.inRoom">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <h3>
+            <i class="fa fa-globe"></i>
+            Connect to Network
+            <small>Join with other peers to a lobby</small>
+          </h3>
+          <hr>
+          <div class="form-group">
+            <input ng-model="ctrl.apiKey" class="form-control" type="text" placeholder="Lobby API Key">
+          </div>
+          <div class="form-group">
+            <input ng-model="ctrl.username" class="form-control" type="text" placeholder="Your Name">
+          </div>
+          <button class="btn btn-primary" type="button" ng-click="ctrl.joinLobby()">
+            <i class="fa fa-arrow-right"></i>
+            Connect to server
+          </button>
+        </div>
+      </div>
+    </section>
 
-		<!-- !!! section: lobby -->
-		<section id="lobby-panel" ng-show="ctrl.inLobby && ctrl.activePages.lobby">
-			<div class="col-md-8">
-				<div class="panel panel-default chat-panel-wrapper">
-					<div class="panel-heading">{{ ctrl.currentChat || 'Group' }}</div>
-				  <div class="panel-body chat-panel">
-				    <div class="media" ng-repeat="message in ctrl.chats[ctrl.currentChat || 'lobby']">
-				      <a class="media-left">
-				        <img data-src="holder.js/64x64" alt="64x64" src="img/default.png" data-holder-rendered="true">
-				      </a>
-				      <div class="media-body">
-				        <span class="media-heading">{{message.username}}</span>
-				        {{message.message}}
-				      </div>
-				    </div>
-				  </div>
-				  <div class="panel-footer">
-				  	<div class="input-group">
-				  		<span class="input-group-btn">
-				        <button class="btn btn-default" type="button" ng-click="ctrl.sendData()">
-				        	<i class="fa fa-paperclip"></i>
-				        </button>
-				      </span>
-				      <input ng-model="ctrl.messageContent" type="text" class="form-control" ng-enter="ctrl.sendMessage()">
-				      <span class="input-group-btn">
-				        <button class="btn btn-default" type="button" ng-click="ctrl.sendMessage()">
-				        	<i class="fa fa-arrow-right"></i>
-				        </button>
-				      </span>
-				    </div>
-				  </div>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="list-group">
-				  <a class="list-group-item {{ctrl.activeChats.lobby}}" href="##lobby">
-				    <span class="badge" ng-show="ctrl.unreadChats.lobby > 0">{{ctrl.unreadChats.lobby}}</span>
-				    <i class="fa fa-circle-o status-green"></i>Lobby
-				  </a>
-				  <a id="{{user.id}}" class="list-group-item {{ctrl.activeChats[user.id]}}" ng-repeat="user in ctrl.peers" href="##lobby!!{{user.id}}">
-				    <span class="badge" ng-show="ctrl.unreadChats[user.id] > 0">{{ctrl.unreadChats[user.id]}}</span>
-				    <i class="fa fa-circle status-red"></i>{{user.data.userData.username}}
-				  </a>
-				</ul>
-			</div>
-		</section>
+    <!-- !!! section: lobby -->
+    <section id="lobby-panel" ng-show="ctrl.inLobby && ctrl.activePages.lobby">
+      <div class="col-md-8">
+        <div class="panel panel-default chat-panel-wrapper">
+          <div class="panel-heading">
+            <ul class="nav nav-pills">
+              <li role="presentation" class="inactive"><a>{{ ctrl.getCurrentChatUser(ctrl.currentChat) }}</a></li>
+              <li role="presentation" class="active"><a href="##">Chat</a></li>
+              <li role="presentation"><a href="##">Files</a></li>
+              <li role="presentation" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="##" role="button" aria-expanded="false">
+                  Options <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li><a href="#">Separated link</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="panel-body chat-panel">
+            <div class="media" ng-repeat="message in ctrl.chats[ctrl.currentChat || 'lobby']">
+              <a class="media-left">
+                <img data-src="holder.js/64x64" alt="64x64" src="img/default.png" data-holder-rendered="true">
+              </a>
+              <div class="media-body">
+                <span class="media-heading">{{message.username}}</span>
+                {{message.message}}
+              </div>
+            </div>
+          </div>
+          <div class="panel-file">
+            <input type="file" onchange="angular.element(this).scope().ctrl.uploadFiles(this)" ng-hide="ctrl.inTransferState">
+            <!-- progress for uploaded -->
+            <div class="progress-upload">
+              <!-- progress uploading items -->
+              <div class="progress-upload-item" ng-repeat="uploadingItem in ctrl.uploadTransfers">
+                <span class="col-md-4 progress-item-info">
+                  <i class="fa fa-upload"></i> {{uploadingItem.username}}
+                  <small>{{uploadingItem.filename}} <i>{{uploadingItem.filesize}} KB</i>
+                  </small>
+                </span>
+                <div class="progress-wrapper">
+                  <div ng-hide="uploadingItem.accepted">
+                    <span>Awaiting responses</span><br>
+                  </div>
+                  <div class="progress" ng-show="uploadingItem.accepted">
+                    <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="{{ uploadingItem.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{ uploadingItem.progress }}%">
+                      <span class="sr-only">{{ uploadingItem.progress }}%</span>
+                    </div>
+                  </div>
+                  <span style="margin-left: {{ uploadingItem.progress - 5 }}%" ng-show="">{{ uploadingItem.progress }}%</span>
+                </div>
+              </div>
+
+              <!-- progress uploaded items -->
+              <div class="progress-upload-item" ng-repeat="uploadedItem in ctrl.uploadedFiles">
+                <span class="col-md-4 progress-item-info">
+                  <i class="fa fa-upload"></i> {{uploadedItem.username}}
+                  <small>{{uploadedItem.filename}} <i>{{uploadedItem.filesize}} KB</i>
+                  </small>
+                </span>
+                <div class="progress-wrapper">
+                  <span class="rejected" ng-show="uploadedItem.rejected">{{uploadedItem.username}} has rejected your file</span>
+                  <span ng-hide="uploadedItem.rejected">{{uploadedItem.username}} has received your file</span>
+                  <br>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- progress for download -->
+            <div class="progress-download">
+              <!-- progress downloading items -->
+              <div class="progress-download-item" ng-repeat="downloadingItem in ctrl.downloadTransfers">
+                <span class="col-md-4 progress-item-info">
+                  <i class="fa fa-download"></i> {{downloadingItem.username}}
+                  <small>{{downloadingItem.filename}} <i>{{downloadingItem.filesize}} KB</i>
+                  </small>
+                </span>
+                <div class="progress-wrapper">
+                  <div class="progress" ng-show="downloadingItem.accepted">
+                    <div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="{{ downloadingItem.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{ downloadingItem.progress }}%">
+                      <span class="sr-only">{{ downloadingItem.progress }}%</span>
+                    </div>
+                  </div>
+                  <span style="margin-left: {{ downloadingItem.progress - 5 }}%" ng-show="">{{ downloadingItem.progress }}%</span>
+                  <span ng-hide="downloadingItem.accepted">{{downloadingItem.username}} wants to share a file with you</span>
+                  <div ng-hide="downloadingItem.accepted">
+                    <button class="btn btn-default" type="button" ng-click="ctrl.acceptFileTransfer(downloadingItem.peerId)"> <i class="fa fa-check-circle"></i> Accept</button>
+                    <button class="btn btn-default" type="button" ng-click="ctrl.rejectFileTransfer(downloadingItem.peerId, downloadingItem.transferId)"> <i class="fa fa-times-circle"></i> Reject</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- progress downloaded items -->
+              <div class="progress-download-item" ng-repeat="downloadedItem in ctrl.downloadedFiles">
+                <span class="col-md-4 progress-item-info">
+                  <i class="fa fa-download"></i> {{downloadedItem.username}}
+                  <small>{{downloadedItem.filename}} <i>{{downloadedItem.filesize}} KB</i>
+                  </small>
+                </span>
+                <div class="progress-wrapper">
+                  <span class="rejected" ng-show="downloadedItem.rejected">You have rejected {{downloadedItem.username}}'s file<br><br></span>
+                  <a href="{{downloadedItem.data}}" class="btn btn-info" ng-hide="downloadedItem.rejected">
+                    <i class="fa fa-arrow-down"></i> Click to Download
+                  </a>
+                  <a href="#" class="btn btn-danger" ng-hide="downloadedItem.rejected">
+                    <i class="fa fa-times"></i> Remove File
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+          <div class="panel-footer">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button id="upload-file" class="btn btn-default" type="button">
+                  <i class="fa fa-paperclip"></i>
+                </button>
+              </span>
+              <input ng-model="ctrl.messageContent" type="text" class="form-control" ng-enter="ctrl.sendMessage()">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" ng-click="ctrl.sendMessage()">
+                  <i class="fa fa-arrow-right"></i>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="list-group">
+          <a class="list-group-item {{ctrl.activeChats.lobby}}" href="##lobby">
+          <span class="badge" ng-show="ctrl.unreadChats.lobby > 0">{{ctrl.unreadChats.lobby}}</span>
+          <i class="fa fa-circle-o status-green"></i>Lobby
+        </a>
+          <a id="{{user.id}}" class="list-group-item {{ctrl.activeChats[user.id]}}" ng-repeat="user in ctrl.peers" href="##lobby!!{{user.id}}">
+          <span class="badge" ng-show="ctrl.unreadChats[user.id] > 0">{{ctrl.unreadChats[user.id]}}</span>
+          <i class="fa fa-circle status-red"></i>{{user.data.userData.username}}
+        </a>
+          </ul>
+        </div>
+      </div>
+    </section>
   </div>
 </body>
 

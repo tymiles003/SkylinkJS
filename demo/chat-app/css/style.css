@@ -126,6 +126,105 @@ h3 small {
   color: #888;
 }
 
+.panel-heading-title {
+  background: #428bca;
+  margin: -10px -16px 15px;
+  padding: 7px 14px;
+  border-bottom: solid 1px #d8d8d8;
+  border-radius: 3px;
+  color: #fff;
+}
+
+.panel-file {
+  padding: 10px;
+  border-top: solid 1px #ccc;
+  margin-top: -65px;
+}
+
+.panel-file input {
+  width: 100%;
+}
+
+.progress-upload,
+.progress-download {
+  margin-top: 15px;
+}
+
+.progress-upload-item,
+.progress-download-item {
+  margin-bottom: 35px;
+}
+
+.progress-upload-item span,
+.progress-download-item span {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.progress-wrapper {
+  padding-top: 5px;
+}
+
+.progress-wrapper .progress {
+  height: 5px;
+  margin-bottom: 5px;
+}
+
+.progress-wrapper .btn {
+  font-size: 12px;
+  padding: 5px 12px;
+  margin-right: 5px;
+}
+
+.progress-wrapper .btn .fa,
+.progress-wrapper .btn-info .fa,
+.progress-wrapper .btn-danger .fa {
+  margin-right: 5px;
+  color: #444;
+}
+
+.progress-wrapper .btn-info .fa,
+.progress-wrapper .btn-danger .fa {
+  color: #fff;
+  font-size: 10px;
+}
+
+.progress-wrapper span {
+  margin: -5px 0 10px;
+  display: block;
+}
+
+.progress-wrapper span.rejected {
+  color: red;
+}
+
+.progress-item-info small {
+  display: block;
+  margin-left: 29px;
+  margin-top: 2px;
+}
+
+.progress-item-info small i {
+  color: #888;
+  font-style: normal;
+  display: block;
+}
+
+.chat-panel-wrapper .nav-pills li a {
+  padding: 7px 12px;
+}
+
+.chat-panel-wrapper .nav-pills li.inactive a {
+  padding-left: 0;
+  padding-right: 35px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.chat-panel-wrapper .nav-pills li.inactive:hover a {
+  background: transparent;
+}
+
 @media screen and (max-width: 1000px) {
   .container-wrapper {
     width: 100%;

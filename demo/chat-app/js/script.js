@@ -57,6 +57,9 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
   // in lobby
   _this.inLobby = false;
 
+  // in upload progres
+  _this.inTransferState = false;
+
   // current page
   _this.currentPage = $location.hash();
 
@@ -93,14 +96,38 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
     lobby: []
   };
 
-  // the curent chat
+  // the current tab states
+  _this.currentTabStates = {
+    CHAT: 'chat',
+    FILE: 'file'
+  };
+
+  // the current tab
+  _this.currentTab = 'chat';
+
+  // the curent chat peerId
   _this.currentChat = '';
+
+  // the current chat username
+  _this.currentChatName = '';
 
   // the current room
   _this.currentRoom = '';
 
   // Room ready
   _this.ready = false;
+
+  // active upload transfers
+  _this.uploadTransfers = [];
+
+  // active download transfers
+  _this.downloadTransfers = [];
+
+  // uploaded files
+  _this.uploadedFiles = [];
+
+  // downloaded files
+  _this.downloadedFiles = [];
 
   // current join room impl
   _this.joinRoomImpl = function () { };
@@ -110,7 +137,6 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
   _this.Skylink.on('readyStateChange', function (state) {
     if (state === _this.Skylink.READY_STATE_CHANGE.COMPLETED) {
       _this.ready = true;
-      console.info('ready', _this.joinRoomImpl);
       _this.joinRoomImpl();
     }
   });
@@ -174,6 +200,102 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
     }
   });
 
+  _this.Skylink.on('dataTransferState', function (state, transferId, peerId, transferInfo) {
+    console.info(state, transferId, peerId, transferInfo);
+    var username = _this.Skylink.getPeerInfo(peerId).userData.username;
+
+    if (state === _this.Skylink.DATA_TRANSFER_STATE.UPLOAD_REQUEST) {
+      _this.downloadTransfers.push({
+        transferId: transferId,
+        peerId: peerId,
+        filename: transferInfo.name,
+        filesize: transferInfo.size,
+        username: username,
+        progress: 0,
+        accepted: false
+      });
+      console.info('request');
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.UPLOAD_STARTED) {
+      _this.uploadTransfers.push({
+        transferId: transferId,
+        peerId: peerId,
+        filename: transferInfo.name,
+        filesize: transferInfo.size,
+        username: username,
+        progress: 0
+      });
+      console.info('upload started');
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.DOWNLOAD_STARTED) {
+      angular.forEach(_this.downloadTransfers, function(value, key) {
+        if (value.transferId === transferId) {
+          value.accepted = true;
+        }
+      });
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.UPLOADING) {
+      angular.forEach(_this.uploadTransfers, function(value, key) {
+        if (value.transferId === transferId) {
+          value.progress = transferInfo.progress;
+        }
+      });
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.DOWNLOADING) {
+      angular.forEach(_this.downloadTransfers, function(value, key) {
+        if (value.transferId === transferId) {
+          value.progress = transferInfo.progress;
+        }
+      });
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.UPLOAD_COMPLETED) {
+      alert('completed');
+      angular.forEach(_this.uploadTransfers, function(value, key) {
+        if (value.transferId === transferId) {
+          _this.uploadTransfers.splice(key, 1);
+          _this.uploadedFiles.push({
+            transferId: transferId,
+            peerId: peerId,
+            username: username,
+            filename: transferInfo.name
+          });
+        }
+      });
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.DOWNLOAD_COMPLETED) {
+      angular.forEach(_this.downloadTransfers, function(value, key) {
+        if (value.transferId === transferId) {
+          _this.downloadTransfers.splice(key, 1);
+          _this.downloadedFiles.push({
+            transferId: transferId,
+            peerId: peerId,
+            username: username,
+            filename: transferInfo.name,
+            data: URL.createObjectURL(transferInfo.data)
+          });
+        }
+      });
+
+    } else if (state === _this.Skylink.DATA_TRANSFER_STATE.REJECTED) {
+        angular.forEach(_this.uploadTransfers, function(value, key) {
+          if (value.transferId === transferId) {
+            _this.uploadTransfers.splice(key, 1);
+            _this.uploadedFiles.push({
+              transferId: transferId,
+              peerId: peerId,
+              username: username,
+              // fix for transferInfo not being defined
+              filename: (transferInfo || {}).name,
+              rejected: true
+            });
+          }
+        });
+
+    } else {
+      alert('Error: ' + state);
+    }
+  });
+
 
   /** Methods **/
   _this.joinLobby = function () {
@@ -210,6 +332,60 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
   _this.sendMessage = function () {
     _this.Skylink.sendMessage(_this.messageContent, _this.currentChat);
     _this.messageContent = '';
+  };
+
+  _this.uploadFiles = function ($element) {
+    // set the selected upload files
+    var files = $element.files;
+    // do an upload
+    _this.Skylink.sendBlobData(files[0], files[0], _this.currentChat);
+  };
+
+  _this.acceptFileTransfer = function (peerId) {
+    console.info(peerId);
+    _this.Skylink.respondBlobRequest(peerId, true);
+  };
+
+  _this.rejectFileTransfer = function (peerId, transferId) {
+    _this.Skylink.respondBlobRequest(peerId, false);
+
+    // loop every item
+    var username = _this.Skylink.getPeerInfo(peerId).userData.username;
+    angular.forEach(_this.downloadTransfers, function(value, key) {
+      if (value.transferId === transferId) {
+        _this.downloadTransfers.splice(key, 1);
+        _this.downloadedFiles.push({
+          transferId: transferId,
+          peerId: peerId,
+          username: username,
+          // fix for transferInfo not being defined
+          filename: ({}).name,
+          rejected: true
+        });
+      }
+    });
+  };
+
+  _this.cancelFileTransfer = function (peerId, type) {
+    _this.Skylink.cancelBlobTransfer(peerId, type);
+  };
+
+  _this.findPeer = function (peerId) {
+    var peerInfo;
+    angular.forEach(_this.peers, function(value, key) {
+      if (value.id === peerId) {
+        peerInfo = value;
+      }
+    });
+    return peerInfo;
+  };
+
+  _this.getCurrentChatUser = function (peerId) {
+    if (peerId) {
+      return _this.findPeer(peerId).data.userData.username;
+    } else {
+      return 'Group';
+    }
   };
 
   _this.setActivePage = function () {
@@ -267,6 +443,7 @@ angular.module('Skylink').controller('RoomController', function ($location, $sco
     _this.setActivePage();
     _this.setActiveChat();
     _this.setUnreadChats();
+    _this.inTransferState = _this.uploadTransfers.length > 0 || _this.downloadTransfers.length > 0;
     $scope.$apply();
   }, 500);
 });
@@ -286,10 +463,15 @@ angular.module('Skylink').directive('ngEnter', function () {
 });
 
 $(document).ready(function () {
+  // resize the chat box layout
   function resizeChat () {
     $('.chat-panel').css('height', ($(window).height() - 71 - 41 - 55 - 35) + 'px');
     $('.chat-panel').css('max-height', ($(window).height() - 71 - 41 - 55 - 35) + 'px');
   }
   $(window).resize(resizeChat);
   resizeChat();
+  // upload files toggle
+  $('#upload-file').click(function () {
+    $('.panel-file').slideToggle();
+  });
 });
