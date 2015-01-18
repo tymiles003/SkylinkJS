@@ -106,11 +106,7 @@ function Socket (server, listener) {
 	 * @since 0.6.0
 	 */
 	com.disconnect = function () {
-		com.socket.disconnect(function () {
-			listener('Socket:disconnect', {
-				name: com.name
-			});
-		});
+		com.socket.disconnect();
 	};
 
 	/**

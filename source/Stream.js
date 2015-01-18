@@ -86,7 +86,9 @@ function Stream (stream, config, listener) {
 		com.MediaStream = stream;
 		com.id = stream.id;
 
-		listener('stream:start', stream.id);
+		listener('stream:start', {
+			id: stream.id
+		});
 	};
 
 	/**
@@ -121,7 +123,11 @@ function Stream (stream, config, listener) {
 			// Set the mute status
 			bindTracks[i].enabled = true;
 
-			listener('stream:track:start', bindTracks[i].id, bindTracks[i].type, com.id);
+			listener('stream:track:start', {
+				id: com.id,
+				trackId: bindTracks[i].id,
+				type: bindTracks[i].type
+			});
 		}
 	};
 
@@ -133,7 +139,9 @@ function Stream (stream, config, listener) {
 	 * @since 0.6.0
 	 */
 	com.onStreamEnded = function (event) {
-		listener('stream:stop', stream.id);
+		listener('stream:stop', {
+			id: com.id
+		});
 	};
 
 	/**
@@ -144,7 +152,11 @@ function Stream (stream, config, listener) {
 	 * @since 0.6.0
 	 */
 	com.onTrackEnded = function (trackId, type, event) {
-		listener('stream:track:stop', trackId, type, com.id);
+		listener('stream:track:stop', {
+			id: com.id,
+			trackId: trackId,
+			type: type
+		});
 	};
 
 	/**
@@ -155,7 +167,11 @@ function Stream (stream, config, listener) {
 	 * @since 0.6.0
 	 */
 	com.onTrackMute = function (trackId, type, event) {
-		listener('stream:track:mute', trackId, type, com.id);
+		listener('stream:track:mute', {
+			id: com.id,
+			trackId: trackId,
+			type: type
+		});
 	};
 
 	/**
@@ -166,7 +182,11 @@ function Stream (stream, config, listener) {
 	 * @since 0.6.0
 	 */
 	com.onTrackUnmute = function (trackId, type, event) {
-		listener('stream:track:unmute', trackId, type, com.id);
+		listener('stream:track:unmute', {
+			id: com.id,
+			trackId: trackId,
+			type: type
+		});
 	};
 
 	/**
@@ -177,7 +197,11 @@ function Stream (stream, config, listener) {
 	 * @since 0.6.0
 	 */
 	com.onTrackOverConstrained = function (trackId, type, event) {
-		listener('stream:track:overconstrained', trackId, type, com.id);
+		listener('stream:track:overconstrained', {
+			id: com.id,
+			trackId: trackId,
+			type: type
+		});
 	};
 
 	/**
