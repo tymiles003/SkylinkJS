@@ -78,14 +78,14 @@ function Socket (server, listener) {
 	com.Socket = null;
 
 	/**
-	 * The events tied to the socket that are fired continously.
-	 * @attribute events
-	 * @type Array
+	 * The responses attached to message events.
+	 * @attribute responses
+	 * @type JSON
 	 * @private
 	 * @for Socket
 	 * @since 0.6.0
 	 */
-	com.events = [];
+	com.responses = {};
 
 	/**
 	 * Starts the connection to the signalling server
@@ -96,6 +96,46 @@ function Socket (server, listener) {
 	 */
 	com.connect = function () {
 		com.Socket = new WebSocket();
+	};
+
+	/**
+	 * Stops the connection to the Socket.
+	 * @method disconnect
+	 * @trigger peerJoined, mediaAccessRequired
+	 * @for Socket
+	 * @since 0.6.0
+	 */
+	com.disconnect = function () {
+		com.socket.disconnect(function () {
+			listener('Socket:disconnect', {
+				name: com.name
+			});
+		});
+	};
+
+	/**
+	 * Attaches a listener to a particular socket message event received.
+	 * @method when
+	 * @trigger peerJoined, mediaAccessRequired
+	 * @for Socket
+	 * @since 0.6.0
+	 */
+	com.when = function(event, callback) {
+		com.responses[event] = com.responses[event] || [];
+		// Push callback for listening
+		com.responses[event].push(callback);
+	};
+
+	/**
+	 * Sends a socket data.
+	 * @method send
+	 * @trigger peerJoined, mediaAccessRequired
+	 * @for Socket
+	 * @since 0.6.0
+	 */
+	com.send = function(data) {
+		com.Socket.send( JSON.stringify(data) );
+		listener('socket:send');
 	};
 
 	/**
@@ -139,12 +179,28 @@ function Socket (server, listener) {
   	// Check if bulk message
   	if (data.type === 'group') {
   		for (var i = 0; i < data.lists.length; i++) {
-	      com.trigger(data.lists[i].type, data.lists[i]);
+	      com.respond(data.lists[i].type, data.lists[i]);
 	    }
 
   	} else {
-  		com.trigger(data.type, data);
+  		com.respond(data.type, data);
   	}
+	};
+
+	/**
+	 * Responses to the attached socket message responses.
+	 * @method respond
+	 * @trigger peerJoined, mediaAccessRequired
+	 * @for Socket
+	 * @since 0.6.0
+	 */
+	com.respond = function(type, data) {
+		// Parse for events tied to type.
+		com.responses[type] = com.responses[type] || [];
+
+		for (var i = 0; i < com.responses[type].length; i++) {
+			com.responses[type][i](data);
+		}
 	};
 
 	/**
@@ -159,13 +215,16 @@ function Socket (server, listener) {
 		case 'WebSocket':
 			log.error('Failed initializing WebSocket', error);
 			// Disconnect first
-			com.Socket.disconnect();
+			com.Socket.removeAllresponses();
 			// Re-initialize as FallbackSocket
 			com.Socket = com.FallbackSocket();
 			break;
 
 		case 'FallbackSocket':
 			log.error('Failed initializing FallbackSocket', error);
+			// Disconnect first
+			com.Socket.removeAllresponses();
+			// Re-initialize as FallbackSocket
 			com.Socket = com.LongPollingSocket();
 			break;
 
@@ -173,22 +232,6 @@ function Socket (server, listener) {
 			log.error('Failed initializing LongPollingSocket', error);
 			break;
 		}
-	};
-
-	/**
-	 * Stops the connection to the Socket.
-	 * @method disconnect
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Socket
-	 * @since 0.6.0
-	 */
-	com.disconnect = function (callback) {
-		com.socket.disconnect(function () {
-			listener('Socket:disconnect', {
-				name: com.name
-			});
-			callback();
-		});
 	};
 
 	/**
@@ -280,46 +323,6 @@ function Socket (server, listener) {
 		socket.on('reconnect_failed', com.onConnectError);
 
 		return socket;
-	};
-
-	/**
-	 * Attaches a callback listener for socket message event.
-	 * @method on
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Socket
-	 * @since 0.6.0
-	 */
-	com.on = function(event, callback) {
-		com.events[event] = com.events[event] || [];
-		// Push callback for listening
-		com.events[event].push(callback);
-	};
-
-	/**
-	 * Triggers all attached events.
-	 * @method trigger
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Socket
-	 * @since 0.6.0
-	 */
-	com.trigger = function(type, data) {
-		// Parse for events tied to type.
-		com.events[type] = com.events[type] || [];
-
-		for (var i = 0; i < com.events[type].length; i++) {
-			com.events[type][i](data);
-		}
-	};
-
-	/**
-	 * Sends a socket data.
-	 * @method send
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Socket
-	 * @since 0.6.0
-	 */
-	com.send = function(data) {
-		com.Socket.send( JSON.stringify(data) );
 	};
 
 }
