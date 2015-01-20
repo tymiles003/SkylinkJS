@@ -392,4 +392,9 @@ function Stream(stream, config, listener) {
   } else {
     com.bind(stream);
   }
+
+  // Throw an error if adapterjs is not loaded
+  if (!window.attachMediaStream) {
+		throw new Error('Required dependency adapterjs not found');
+	}
 }

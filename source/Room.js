@@ -124,7 +124,7 @@ function Room (name, listener) {
 	 * @since 0.6.0
 	 */
 	com.join = function (options, callback) {
-		com.socket.on('inRoom', function (data) {
+		com.socket.when('inRoom', function (data) {
 			com.self.connect(data.pc_config, function (userId, peerId) {
 				listener('room:connect', {
 					name: com.name,
