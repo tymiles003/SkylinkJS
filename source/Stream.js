@@ -1,5 +1,3 @@
-var globals = globals || {};
-
 /**
  * Handles the XMLHttpStream and API function calls.
  * @class Stream
