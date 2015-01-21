@@ -1,7 +1,71 @@
 <html>
 <body>
-<video id="test"></video>
+<select id="data"></select>
+<button onclick="getMedia()">Select Please</button>
+<video id="test1" autoplay></video>
+<video id="test2" autoplay></video>
 <script src="publish/skylink.complete.js"></script>
 <script src="source/Socket.js"></script>
+<script>
+	var current = 1;
+
+	//if (window.webrtcDetectedBrowser !== 'firefox') {
+
+		window.list = [];
+
+		MediaStreamTrack.getSources(function (_list) {
+			window.list = _list;
+
+			for (var i = 0; i < _list.length; i++) {
+				var option = document.createElement('option');
+				option.value = i;
+				option.innerHTML = i + ' _ ' + _list[i].kind;
+				document.getElementById('data').appendChild(option);
+			}
+		});
+
+		function getMedia () {
+			var index = parseInt( document.getElementById('data').value );
+
+			var media = window.list[index];
+
+			if (current < 3) {
+				var constraints = {
+					audio: {
+						optional: [{sourceId: window.list[0].id}]
+					},
+					video: {
+						optional: [{ sourceId: media.id }]
+					}
+				};
+				window.getUserMedia(constraints, function (stream) {
+					var video = document.getElementById('test' + current);
+					console.info(constraints, current, video);
+					window.attachMediaStream( video, stream);
+					current += 1;
+				}, function (error) {
+					console.log(error, current, media);
+				});
+			}
+		}
+	/*} else {
+		function getMedia () {
+			if (current < 3) {
+				var constraints = {
+					video: true,
+					audio: true
+				};
+				window.getUserMedia(constraints, function (stream) {
+					var video = document.getElementById('test' + current);
+					console.info(constraints, current, video);
+					window.attachMediaStream( video, stream);
+					current += 1;
+				}, function (error) {
+					console.log(error, current);
+				});
+			}
+		}
+	}*/
+</script>
 </body>
 </html>

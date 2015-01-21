@@ -108,8 +108,9 @@ function Peer (config, listener) {
 	 * @for Peer
 	 * @since 0.6.0
 	 */
-	com.connect = function (config) {
-		var peer  = new window.RTCPeerConnection(com.config, com.constraints);
+	com.connect = function (constraints) {
+		var peer  = new window.RTCPeerConnection(com.config, constraints);
+		com.constraints = constraints;
 		com.bind(peer);
 	};
 
@@ -242,31 +243,67 @@ function Peer (config, listener) {
     var state = ICE.parseIceGatheringState(bindPeer.iceGatheringState);
   };
 
+  /**
+   * Creates an offer session description.
+   * @method createOffer
+   * @trigger StreamJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.createOffer = function() {
+    com.RTCPeerConnection.createOffer(function (offer) {
+    	listener('peer:create_offer_success', offer);
+
+    	com.setLocalDescription(offer);
+
+    }, function (error) {
+    	listener('peer:create_offer_failure', error);
+    });
+  };
+
+  /**
+   * Creates an answer session description.
+   * @method createAnswer
+   * @trigger StreamJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.createAnswer = function() {
+    com.RTCPeerConnection.createAnswer(function (offer) {
+    	listener('peer:create_offer_success', offer);
+
+    	com.setLocalDescription(offer);
+
+    }, function (error) {
+    	listener('peer:create_offer_failure', error);
+    });
+  };
+
+  /**
+   * Sends the local MediaStream object to peer.
+   * @method streamStream
+   * @trigger StreamJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.sendStream = function(stream) {
+    com.RTCPeerConnection.addStream(stream.MediaStream || stream);
+  };
+
+  /**
+   * Sends the local MediaStream object to peer.
+   * @method streamStream
+   * @trigger StreamJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.sendStream = function(stream) {
+    com.RTCPeerConnection.addStream(stream.MediaStream || stream);
+  };
+
 	// Throw an error if adapterjs is not loaded
   if (!window.RTCPeerConnection) {
 		throw new Error('Required dependency adapterjs not found');
 	}
-}
-
-function StreamPeer (config, constraints, listener) {
-	'use strict';
-
-	// Reference of instance
-	var com = this;
-
-	// Inherit reference from parent class
-	com = new Peer(config, constraints, listener);
-
-	/**
-	 * Sends a stream to peers.
-	 * @method connect
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.sendLocalStream = function (config) {
-		var peer  = new window.RTCPeerConnection(com.config, com.constraints);
-		com.bind(peer);
-	};
 }
 
