@@ -39,6 +39,17 @@ function Stream(stream, config, listener) {
    * @since 0.6.0
    */
   com.config = config;
+  
+  /**
+   * The stream readyState.
+   * @attribute readyState
+   * @type String
+   * @required
+   * @private
+   * @for Stream
+   * @since 0.6.0
+   */
+  com.readyState = 'new';
 
   /**
    * The MediaStream object.
@@ -57,10 +68,8 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.start = function(constraints) {
-  	com.constraints = constraints;
-
-  	window.getUserMedia(constraints, com.bind, function(error) {
+  com.start = function () {
+    window.getUserMedia(com.constraints, com.bind, function (error) {
       listener('stream:error', error);
     });
   };
@@ -72,8 +81,8 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.bind = function(bindStream) {
-  	// Set a MediaStream id if Firefox or Chrome doesn't
+  com.bind = function (bindStream) {
+    // Set a MediaStream id if Firefox or Chrome doesn't
     com.id = bindStream.id || Date.UTC();
 
     // Bind events to MediaStream
@@ -101,15 +110,15 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.bindTracks = function(bindTracks) {
+  com.bindTracks = function (bindTracks) {
     for (var i = 0; i < bindTracks.length; i++) {
-    	var track = bindTracks[i];
-    	track.newId = track.id || Date.UTC();
+      var track = bindTracks[i];
+      track.newId = track.id || Date.UTC();
 
       // Bind events to MediaStreamTrack
       // bindTracks[i].onstarted = com.onStarted;
-      track.onended = function(event) {
-        com.onTrackEnded(track, event);
+      track.onended = function (event) {
+        com.onTrackEnded(track);
       };
 
       // Un-implemented events functions
@@ -121,11 +130,11 @@ function Stream(stream, config, listener) {
       var isEnabled = true;
 
       if (track.kind === 'audio') {
-      	isEnabled = (typeof com.config.audio === 'object') ?
-      		!!!com.config.audio.mute : !!com.config.audio;
+        isEnabled = (typeof com.config.audio === 'object') ?
+          !!!com.config.audio.mute : !!com.config.audio;
       } else {
-      	isEnabled = (typeof com.config.video === 'object') ?
-      		!!!com.config.video.mute : !!com.config.video;
+        isEnabled = (typeof com.config.video === 'object') ?
+          !!!com.config.video.mute : !!com.config.video;
       }
 
       bindTracks[i].enabled = isEnabled;
@@ -147,8 +156,8 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.attachElement = function(element) {
-  	window.attachMediaStream(element, com.MediaStream);
+  com.attachElement = function (element) {
+    window.attachMediaStream(element, com.MediaStream);
   };
 
   /**
@@ -158,12 +167,12 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.bindOnStreamEnded = function(bindStream) {
+  com.bindOnStreamEnded = function (bindStream) {
     // Firefox browsers
     if (window.webrtcDetectedBrowser === 'firefox') {
       // LocalMediaStream
       if (bindStream.constructor === LocalMediaStream) {
-        return setInterval(function() {
+        return setInterval(function () {
           if (typeof bindStream.recordedTime === 'undefined') {
             bindStream.recordedTime = 0;
           }
@@ -178,12 +187,12 @@ function Stream(stream, config, listener) {
           }
         }, 1000);
 
-      // Remote MediaStream
+        // Remote MediaStream
       } else {
-        return (function() {
+        return (function () {
           // Use a video to attach to check if stream has ended
           var video = document.createElement('video');
-          video.onstreamended = setInterval(function() {
+          video.onstreamended = setInterval(function () {
             if (typeof video.mozSrcObject === 'object') {
               if (video.mozSrcObject.ended === true) {
                 clearInterval(video.onstreamended);
@@ -208,10 +217,10 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.onStreamEnded = function(event) {
-  	var stream = event.target || event;
+  com.onStreamEnded = function (event) {
+    var stream = event.target || event;
 
-  	listener('stream:stop', {
+    listener('stream:stop', {
       id: com.id,
       label: stream.label,
       constraints: com.constraints
@@ -225,7 +234,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.onTrackEnded = function(track, event) {
+  com.onTrackEnded = function (track) {
     listener('stream:track:stop', {
       streamId: com.id,
       id: track.newId,
@@ -242,7 +251,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.onTrackMute = function(track, event) {
+  com.onTrackMute = function (track) {
     listener('stream:track:mute', {
       streamId: com.id,
       id: track.newId,
@@ -259,7 +268,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.onTrackUnmute = function(track, event) {
+  com.onTrackUnmute = function (track) {
     listener('stream:track:unmute', {
       streamId: com.id,
       id: track.newId,
@@ -276,7 +285,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.muteAudio = function() {
+  com.muteAudio = function () {
     var tracks = com.MediaStream.getAudioTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -292,7 +301,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.unmuteAudio = function() {
+  com.unmuteAudio = function () {
     var tracks = com.MediaStream.getAudioTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -308,7 +317,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.stopAudio = function() {
+  com.stopAudio = function () {
     var tracks = com.MediaStream.getAudioTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -316,7 +325,7 @@ function Stream(stream, config, listener) {
 
       // Workaround for firefox as it does not have stop events
       if (window.webrtcDetectedBrowser === 'firefox') {
-      	tracks[i].onended(tracks[i]);
+        tracks[i].onended(tracks[i]);
       }
     }
   };
@@ -328,7 +337,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.muteVideo = function() {
+  com.muteVideo = function () {
     var tracks = com.MediaStream.getVideoTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -344,7 +353,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.unmuteVideo = function() {
+  com.unmuteVideo = function () {
     var tracks = com.MediaStream.getVideoTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -360,7 +369,7 @@ function Stream(stream, config, listener) {
    * @for Stream
    * @since 0.6.0
    */
-  com.stopVideo = function() {
+  com.stopVideo = function () {
     var tracks = com.MediaStream.getVideoTracks();
 
     for (var i = 0; i < tracks.length; i++) {
@@ -368,12 +377,12 @@ function Stream(stream, config, listener) {
 
       // Workaround for firefox as it does not have stop events
       if (window.webrtcDetectedBrowser === 'firefox') {
-      	tracks[i].onended(tracks[i]);
+        tracks[i].onended(tracks[i]);
       }
     }
   };
 
-  com.stop = function() {
+  com.stop = function () {
     // Stop MediaStream tracks
     com.stopVideo();
     com.stopAudio();
@@ -383,11 +392,22 @@ function Stream(stream, config, listener) {
 
   // Bind or start MediaStream
   if (stream === null) {
-    var constraints = globals.getMediaConstraints(config);
+    var audioSettings = StreamParser.parseAudioConfig(config);
+    var videoSettings = StreamParser.parseVideoConfig(config);
+    var statusSettings = StreamParser.parseMutedConfig(config);
 
-    com.start(constraints);
+    com.constraints = {
+      audio: audioSettings.userMedia,
+      video: videoSettings.userMedia
+    };
 
-    com.config = config;
+    com.config = {
+      audio: audioSettings.settings,
+      video: audioSettings.settings,
+      status: statusSettings
+    };
+
+    com.start();
 
   } else {
     com.bind(stream);
@@ -395,6 +415,6 @@ function Stream(stream, config, listener) {
 
   // Throw an error if adapterjs is not loaded
   if (!window.attachMediaStream) {
-		throw new Error('Required dependency adapterjs not found');
-	}
+    throw new Error('Required dependency adapterjs not found');
+  }
 }

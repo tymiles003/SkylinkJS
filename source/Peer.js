@@ -4,161 +4,171 @@
  * @for Skylink
  * @since 0.6.0
  */
-function Peer (config, listener) {
-	'use strict';
+function Peer(config, listener) {
+  'use strict';
 
-	// Reference of instance
-	var com = this;
+  // Reference of instance
+  var com = this;
 
-	/**
-	 * The peer id.
-	 * @attribute id
-	 * @type String
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.id = config.id || null;
+  /**
+   * The peer id.
+   * @attribute id
+   * @type String
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.id = config.id || null;
 
-	/**
-	 * The user id that the peer is tied to.
-	 * @attribute userId
-	 * @type String
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.userId = config.userId;
+  /**
+   * The user id that the peer is tied to.
+   * @attribute userId
+   * @type String
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.userId = config.userId;
 
-	/**
-	 * The peer type.
-	 * - Reference: peerTypes
-	 * @attribute type
-	 * @type String
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.type = null;
+  /**
+   * The peer type.
+   * @attribute type
+   * @type String
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.type = null;
+  
+  /**
+   * The peer readyState.
+   * @attribute readyState
+   * @type String
+   * @required
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.readyState = 'new';
 
-	/**
-	 * The PeerConnection constraints.
-	 * @attribute constraints
-	 * @type String
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.constraints = config.constraints;
+  /**
+   * The PeerConnection constraints.
+   * @attribute constraints
+   * @type String
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.constraints = config.constraints;
 
-	/**
-	 * The PeerConnection configuration.
-	 * @attribute config
-	 * @type String
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.config = config.config || {
-		optional: [{
-			DtlsSrtpKeyAgreement: true
-		}]
-	};
+  /**
+   * The PeerConnection configuration.
+   * @attribute config
+   * @type String
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.config = config.config || {
+    optional: [{
+      DtlsSrtpKeyAgreement: true
+    }]
+  };
 
-	/**
-	 * The stream object.
-	 * @attribute stream
-	 * @type Stream
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.stream = null;
+  /**
+   * The stream object.
+   * @attribute stream
+   * @type Stream
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.stream = null;
 
-	/**
-	 * The list of DataChannels connected to Peer.
-	 * @attribute datachannels
-	 * @param {DataChannel} main The main DataChannel for sending chats.
-	 * @param {JSON} transfers The list of datachannel(s) for transfers.
-	 * @param {DataChannel} [transfers.n=*] The DataChannel for sending data.
-	 * @type Stream
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.datachannels = {
-		main: null,
-		transfers: {}
-	};
+  /**
+   * The list of DataChannels connected to Peer.
+   * @attribute datachannels
+   * @param {DataChannel} main The main DataChannel for sending chats.
+   * @param {JSON} transfers The list of datachannel(s) for transfers.
+   * @param {DataChannel} [transfers.n=*] The DataChannel for sending data.
+   * @type Stream
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.datachannels = {
+    main: null,
+    transfers: {}
+  };
 
-	/**
-	 * The PeerConnection object.
-	 * @attribute RTCPeerConnection
-	 * @type Object
-	 * @private
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.RTCPeerConnection = null;
+  /**
+   * The PeerConnection object.
+   * @attribute RTCPeerConnection
+   * @type Object
+   * @private
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.RTCPeerConnection = null;
 
-	/**
-	 * Starts the peer connection.
-	 * @method connect
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.connect = function (constraints) {
-		var peer  = new window.RTCPeerConnection(com.config, constraints);
-		com.constraints = constraints;
-		com.bind(peer);
-	};
+  /**
+   * Starts the peer connection.
+   * @method connect
+   * @trigger peerJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.connect = function (constraints) {
+    var peer = new window.RTCPeerConnection(com.config, constraints);
+    com.constraints = constraints;
+    com.bind(peer);
+  };
 
-	/**
-	 * Stops the peer connection.
-	 * @method disconnect
-	 * @trigger peerJoined, mediaAccessRequired
-	 * @for Peer
-	 * @since 0.6.0
-	 */
-	com.disconnect = function (config) {
-		com.RTCPeerConnection.close();
-	};
+  /**
+   * Stops the peer connection.
+   * @method disconnect
+   * @trigger peerJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.disconnect = function (config) {
+    com.RTCPeerConnection.close();
+  };
 
-	/**
+  /**
    * Binds events to RTCPeerConnection object.
    * @method bind
    * @trigger StreamJoined, mediaAccessRequired
    * @for Peer
    * @since 0.6.0
    */
-  com.bind = function(bindPeer) {
-  	bindPeer.ondatachannel = function(event) {
-	    //var dc = event.channel || event;
-	    com.onDataChannel(event);
-	  };
+  com.bind = function (bindPeer) {
+    bindPeer.ondatachannel = function (event) {
+      //var dc = event.channel || event;
+      com.onDataChannel(event);
+    };
 
-	  bindPeer.onaddstream = function(event) {
-	    com.onAddStream(event);
-	  };
+    bindPeer.onaddstream = function (event) {
+      com.onAddStream(event);
+    };
 
-	  bindPeer.onicecandidate = function(event) {
-	    com.onIceCandidate(event, bindPeer);
-	  };
+    bindPeer.onicecandidate = function (event) {
+      com.onIceCandidate(event, bindPeer);
+    };
 
-	  bindPeer.oniceconnectionstatechange = function(event) {
-	    com.onIceConnectionStateChange(event);
-	  };
+    bindPeer.oniceconnectionstatechange = function (event) {
+      com.onIceConnectionStateChange(event);
+    };
 
-	  // bindPeer.onremovestream = function (event) {};
+    // bindPeer.onremovestream = function (event) {};
 
-	  bindPeer.onsignalingstatechange = function() {
-	    com.onSignalingStateChange(event);
-	  };
+    bindPeer.onsignalingstatechange = function () {
+      com.onSignalingStateChange(event);
+    };
 
-	  bindPeer.onicegatheringstatechange = function() {
-	    com.onIceGatheringStateChange(event);
-	  };
+    bindPeer.onicegatheringstatechange = function () {
+      com.onIceGatheringStateChange(event);
+    };
   };
 
   /**
@@ -168,17 +178,17 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onDataChannel = function(event) {
+  com.onDataChannel = function (event) {
     var received = event.channel || event;
 
     var channel = new DataChannel(received, null, function (event, data) {
-  		listener(event, data);
-  	});
+      listener(event, data);
+    });
 
     if (channel.label === 'main') {
-    	com.datachannels.main = channel;
+      com.datachannels.main = channel;
     } else {
-    	com.datachannels.transfers[channel.label] = channel;
+      com.datachannels.transfers[channel.label] = channel;
     }
   };
 
@@ -189,12 +199,12 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onAddStream = function(event) {
+  com.onAddStream = function (event) {
     var received = event.stream || event;
 
-    com.stream = new Stream(received, null, ffunction (event, data) {
-  		listener(event, data);
-  	});
+    com.stream = new Stream(received, null, function(event, data) {
+      listener(event, data);
+    });
   };
 
   /**
@@ -204,7 +214,7 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onIceCandidate = function(event, bindPeer) {
+  com.onIceCandidate = function (event, bindPeer) {
     var received = event.candidate || event;
 
     ICE.addCandidate(bindPeer, received);
@@ -217,8 +227,14 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onIceConnectionStateChange = function(event, bindPeer) {
-    var state = ICE.parseIceConnectionState(bindPeer.iceConnectionState);
+  com.onIceConnectionStateChange = function (event, bindPeer) {
+    var state = ICE.parseIceConnectionState(bindPeer, function (newState) {
+      listener('peer:iceconnectionstate', {
+        id: com.id,
+        userId: userId,
+        state: newState
+      });
+    });
   };
 
   /**
@@ -228,8 +244,13 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onSignalingStateChange = function(event, bindPeer) {
+  com.onSignalingStateChange = function (event, bindPeer) {
     var state = bindPeer.signalingState;
+    listener('peer:signalingstate', {
+      id: com.id,
+      userId: userId,
+      state: state
+    });
   };
 
   /**
@@ -239,7 +260,7 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.onIceGatheringStateChange = function(event, bindPeer) {
+  com.onIceGatheringStateChange = function (event, bindPeer) {
     var state = ICE.parseIceGatheringState(bindPeer.iceGatheringState);
   };
 
@@ -250,14 +271,14 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.createOffer = function() {
+  com.createOffer = function () {
     com.RTCPeerConnection.createOffer(function (offer) {
-    	listener('peer:create_offer_success', offer);
+      listener('peer:create_offer_success', offer);
 
-    	com.setLocalDescription(offer);
+      com.setLocalDescription(offer);
 
     }, function (error) {
-    	listener('peer:create_offer_failure', error);
+      listener('peer:create_offer_failure', error);
     });
   };
 
@@ -268,14 +289,14 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.createAnswer = function() {
+  com.createAnswer = function () {
     com.RTCPeerConnection.createAnswer(function (offer) {
-    	listener('peer:create_offer_success', offer);
+      listener('peer:create_offer_success', offer);
 
-    	com.setLocalDescription(offer);
+      com.setLocalDescription(offer);
 
     }, function (error) {
-    	listener('peer:create_offer_failure', error);
+      listener('peer:create_offer_failure', error);
     });
   };
 
@@ -286,24 +307,12 @@ function Peer (config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.sendStream = function(stream) {
+  com.sendStream = function (stream) {
     com.RTCPeerConnection.addStream(stream.MediaStream || stream);
   };
 
-  /**
-   * Sends the local MediaStream object to peer.
-   * @method streamStream
-   * @trigger StreamJoined, mediaAccessRequired
-   * @for Peer
-   * @since 0.6.0
-   */
-  com.sendStream = function(stream) {
-    com.RTCPeerConnection.addStream(stream.MediaStream || stream);
-  };
-
-	// Throw an error if adapterjs is not loaded
+  // Throw an error if adapterjs is not loaded
   if (!window.RTCPeerConnection) {
-		throw new Error('Required dependency adapterjs not found');
-	}
+    throw new Error('Required dependency adapterjs not found');
+  }
 }
-
