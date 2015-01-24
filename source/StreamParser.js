@@ -54,8 +54,7 @@ var StreamParser = {
    * @since 0.6.0
    */
   parseAudioConfig: function (options) {
-    options = (typeof options === 'object') ?
-      options : !!options;
+    options = (typeof options === 'object') ? options : !!options;
 
     // Cleaning of unwanted keys
     if (options !== false) {
@@ -100,7 +99,7 @@ var StreamParser = {
       options = (typeof options === 'boolean') ?
         { resolution: {} } : options;
       
-      var tempVideoOptions = {};
+      var tempOptions = {};
       
       // set the resolution parsing
       options.resolution = options.resolution || {};
@@ -122,12 +121,12 @@ var StreamParser = {
 
       userMedia = {
         mandatory: {
-          //minWidth: videoOptions.resolution.width,
-          //minHeight: videoOptions.resolution.height,
-          maxWidth: videoOptions.resolution.width,
-          maxHeight: videoOptions.resolution.height,
-          //minFrameRate: videoOptions.frameRate,
-          maxFrameRate: videoOptions.frameRate
+          //minWidth: tempOptions.resolution.width,
+          //minHeight: tempOptions.resolution.height,
+          maxWidth: tempOptions.resolution.width,
+          maxHeight: tempOptions.resolution.height,
+          //minFrameRate: tempOptions.frameRate,
+          maxFrameRate: tempOptions.frameRate
         },
         optional: []
       };
@@ -206,6 +205,7 @@ var StreamParser = {
     return {
       audioMuted: updateAudioMuted,
       videoMuted: updateVideoMuted
+    };
   },
 
   parseDefaultConfig: function (options) {
