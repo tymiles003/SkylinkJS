@@ -46,18 +46,7 @@ var Event = {
  * @for Skylink
  * @since 0.6.0
  */
-var Event = {
-  /**
-   * Stores the list of available events.
-   * @property Event.list
-   * @type JSON
-   * @private
-   * @final
-   * @required
-   * @for Skylink
-   * @since 0.6.0
-   */
-  list: {
+var EventList = {
     /**
      * Event fired when the socket connection to the signaling
      * server is open.
