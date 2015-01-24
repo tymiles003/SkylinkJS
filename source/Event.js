@@ -1,3 +1,41 @@
+Skylink.Event = {
+  listeners: {
+    on: [],
+    once: []
+  },
+  
+  on: function (event, listener) {
+    this.listeners.on[event].push(listener);
+  },
+  
+  once: function (event, listener) {
+    this.listeners.once[event].push(listener);
+  },
+  
+  respond: function (event) {
+    var args = Array.prototype.slice.call(arguments);
+    var on = this.listeners.on[eventName];
+    var once = this.listeners.on[eventName];
+    
+    this.trigger(on, args);
+    this.trigger(once, args);
+  },
+
+  trigger: function (listeners, args) {
+    args.shift();
+    var i;
+
+    for (i = 0; i < listeners.length; i += 1) {
+      try {
+        listeners[i].apply(this, args);
+        
+      } catch(error) {
+        console.warn('Exception occurred in event:', error);
+      }
+    }
+  }
+};
+
 /**
  * Stores the list of available events.
  * @attribute Event
