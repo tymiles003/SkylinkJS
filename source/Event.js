@@ -1,4 +1,4 @@
-Skylink.Event = {
+var Event = {
   listeners: {
     on: [],
     once: []

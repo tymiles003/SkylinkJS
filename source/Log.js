@@ -1,3 +1,5 @@
+log = console;
+
 /**
  * The log levels.
  * - Order from highest to lowest is: error > warn > info > log > debug.
