@@ -95,7 +95,7 @@ function Stream(stream, config, listener) {
     com.bindTracks(bindStream.getVideoTracks());
 
     com.MediaStream = bindStream;
-
+ 
     listener('stream:start', {
       id: com.id,
       label: bindStream.label,
@@ -136,7 +136,7 @@ function Stream(stream, config, listener) {
         isEnabled = (typeof com.config.video === 'object') ?
           !!!com.config.video.mute : !!com.config.video;
       }
-
+      
       bindTracks[i].enabled = isEnabled;
 
       listener('stream:track:start', {
@@ -389,6 +389,11 @@ function Stream(stream, config, listener) {
     // Stop MediaStream
     com.MediaStream.stop();
   };
+  
+  // Throw an error if adapterjs is not loaded
+  if (!window.attachMediaStream) {
+    throw new Error('Required dependency adapterjs not found');
+  }
 
   // Bind or start MediaStream
   if (stream === null) {
@@ -410,11 +415,13 @@ function Stream(stream, config, listener) {
     com.start();
 
   } else {
-    com.bind(stream);
-  }
-
-  // Throw an error if adapterjs is not loaded
-  if (!window.attachMediaStream) {
-    throw new Error('Required dependency adapterjs not found');
+    // Allow javascript to return object before code execution
+    fn.runSync(function () {
+      com.config = {
+        audio: fn.isSafe(function () { return stream.getAudioTracks().length > 0; }),
+        video: fn.isSafe(function () { return stream.getVideoTracks().length > 0; })
+      };
+      com.bind(stream);
+    });
   }
 }

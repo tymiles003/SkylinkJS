@@ -1,12 +1,39 @@
 var ICE = {
-  queueCandidate: function () {
+  queueCandidate: function (peer, candidate) {
+    peer.queueCandidate = peer.queueCandidate || [];
+    peer.queueCandidate.push([candidate, defer]);
   },
   
-  popCandidate: function () {
+  popCandidate: function (peer) {
+    peer.queueCandidate = peer.queueCandidate || [];
+    var i;
+    
+    for (i = 0; i < peer.queueCandidate.length; i += 1) {
+      var candidate = peer.queueCandidate[i][0];
+      var defer = peer.queueCandidate[i][1];
+      peer.addIceCandidate(candidate, function (success) {
+        defer('candidate:success', success);
+      }, function (error) {
+        defer('candidate:error', error);
+      });
+    }
+    peer.queueCandidate = [];
   },
   
   addCandidate: function (peer, candidate, defer) {
+    if (peer.newSignalingState === 'have-local-pranswer' ||
+      peer.newSignalingState === 'have-remote-pranswer') {
+      
+      peer.addIceCandidate(candidate, function (success) {
+        defer('candidate:add', success); 
+      }, function (error) {
+        defer('candidate:error', error); 
+      });
     
+    } else {
+      this.queueCandidate(peer, candidate, defer);
+      defer('candidate:wait');
+    }
   },
   
   newIceConnectionStates: {
@@ -20,7 +47,7 @@ var ICE = {
     closed : 'closed'
   },
   
-  parseIceConnectionState: function (peer, defer) {
+  parseIceConnectionState: function (peer) {
     var state = peer.iceConnectionState;
     
     var checkState = this.newIceConnectionStates[state];
@@ -39,12 +66,12 @@ var ICE = {
         setTimeout(function () {
           peer.iceConnectionFiredStates.push('done');
 
-          defer('completed');
+          peer.newIceConnectionState = 'completed';
+          peer.oniceconnectionnewstatechange(peer);
         }, 1000);
       }
-      defer(newState);
+      peer.newIceConnectionState = newState;
+      peer.oniceconnectionnewstatechange(peer);
     }
-  },
-  
-  
+  }
 };

@@ -36,3 +36,36 @@ var globals = {
   
   credentials: null
 };
+
+var fn = {
+  isEmpty: function (data) {
+    return typeof data === 'undefined' || data === null;
+  },
+  
+  isSafe: function (unsafeFn) {
+    try {
+      return unsafeFn();
+    } catch (error){
+      log.warn('Unsafe code received', error);
+      return false;
+    }
+  },
+  
+  runSync: function () {
+    var args = Array.prototype.slice.call(arguments);
+    var i;
+    
+    var run = function (fn) {
+      setTimeout(fn, 1);
+      
+      args.splice(0, 1);
+  
+      if (args.length === 0) {
+        return;
+      }
+      run(args[0]);
+    };
+    
+    run(args[0]);
+  }
+}

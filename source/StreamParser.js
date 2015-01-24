@@ -67,6 +67,11 @@ var StreamParser = {
     var userMedia = (typeof options === 'object') ?
       true : options;
 
+    // Add video sourceId
+    if (tempOptions.sourceId && tempOptions.audio === true) {
+      userMedia = { optional: [{ sourceId: tempOptions.sourceId }] };
+    }
+
     return {
       settings: options,
       userMedia: userMedia
@@ -130,6 +135,11 @@ var StreamParser = {
         },
         optional: []
       };
+      
+      // Add video sourceId
+      if (tempOptions.sourceId) {
+        userMedia.optional[0] = { sourceId: tempOptions.sourceId };
+      }
 
       //Remove maxFrameRate for AdapterJS to work with Safari
       if (window.webrtcDetectedType === 'plugin') {

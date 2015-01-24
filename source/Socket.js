@@ -60,6 +60,16 @@ function Socket(config, listener) {
    */
   com.messageInterval = 1000;
   
+   /**
+   * The queue of messages (throttle) before sending the next
+   * @attribute messageQueue
+   * @type Array
+   * @private
+   * @for Socket
+   * @since 0.6.0
+   */
+  com.messageQueue = [];
+  
   /**
    * The socket readyState.
    * @attribute readyState
@@ -135,7 +145,12 @@ function Socket(config, listener) {
    */
   com.connect = function () {
     com.port = com.ports[window.location.protocol][0];
-    com.Socket = new com.WebSocket();
+    
+    if (com.type === 'XHRPolling') {
+      com.Socket = new com.XHRPolling();
+    } else {
+      com.Socket = new com.WebSocket();
+    }
   };
 
   /**
@@ -147,6 +162,7 @@ function Socket(config, listener) {
    */
   com.disconnect = function () {
     com.Socket.disconnect();
+    com.Socket.responses = {};
   };
 
   /**
@@ -189,7 +205,10 @@ function Socket(config, listener) {
    * @since 0.6.0
    */
   com.onConnect = function (options) {
-    listener('socket:connect');
+    listener('socket:connect', {
+      server: com.server,
+      port: com.port
+    });
 
     com.Socket.removeAllListeners();
 
@@ -206,7 +225,10 @@ function Socket(config, listener) {
    * @since 0.6.0
    */
   com.onDisconnect = function () {
-    listener('socket:disconnect');
+    listener('socket:disconnect', {
+      server: com.server,
+      port: com.port
+    });
   };
 
   /**
@@ -217,7 +239,10 @@ function Socket(config, listener) {
    * @since 0.6.0
    */
   com.onMessage = function (result) {
-    listener('socket:message');
+    listener('socket:message', {
+      server: com.server,
+      port: com.port
+    });
 
     var data = JSON.parse(result);
 
@@ -256,7 +281,11 @@ function Socket(config, listener) {
    * @since 0.6.0
    */
   com.onConnectError = function (error) {
-    listener('socket:connect_error', error, com.port);
+    listener('socket:connect_error', {
+      server: com.server,
+      port: com.port,
+      error: error
+    });
 
     var ports = com.ports[window.location.protocol];
 

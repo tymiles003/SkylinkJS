@@ -38,7 +38,7 @@ function Peer(config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.type = null;
+  com.type = 'streaming';
   
   /**
    * The peer readyState.
@@ -143,6 +143,11 @@ function Peer(config, listener) {
    * @since 0.6.0
    */
   com.bind = function (bindPeer) {
+    bindPeer.queueCandidate = [];
+    bindPeer.iceConnectionFiredStates = [];
+    bindPeer.newSignalingState = 'new';
+    bindPeer.newIceConnectionState = 'checking';
+
     bindPeer.ondatachannel = function (event) {
       //var dc = event.channel || event;
       com.onDataChannel(event);
@@ -157,12 +162,17 @@ function Peer(config, listener) {
     };
 
     bindPeer.oniceconnectionstatechange = function (event) {
-      com.onIceConnectionStateChange(event);
+      ICE.parseIceConnectionState(bindPeer);
+    };
+    
+    bindPeer.oniceconnectionnewstatechange = function (event) {
+      com.onIceConnectionStateChange(bindPeer);
     };
 
     // bindPeer.onremovestream = function (event) {};
 
-    bindPeer.onsignalingstatechange = function () {
+    bindPeer.onsignalingstatechange = function (event) {
+      bindPeer.newSignalingState = bindPeer.signalingState;
       com.onSignalingStateChange(event);
     };
 
@@ -228,12 +238,10 @@ function Peer(config, listener) {
    * @since 0.6.0
    */
   com.onIceConnectionStateChange = function (event, bindPeer) {
-    var state = ICE.parseIceConnectionState(bindPeer, function (newState) {
-      listener('peer:iceconnectionstate', {
-        id: com.id,
-        userId: userId,
-        state: newState
-      });
+    listener('peer:iceconnectionstate', {
+      id: com.id,
+      userId: userId,
+      state: newState
     });
   };
 
@@ -273,12 +281,12 @@ function Peer(config, listener) {
    */
   com.createOffer = function () {
     com.RTCPeerConnection.createOffer(function (offer) {
-      listener('peer:create_offer_success', offer);
+      listener('peer:local_offer:success', offer);
 
       com.setLocalDescription(offer);
 
     }, function (error) {
-      listener('peer:create_offer_failure', error);
+      listener('peer:local_offer:failure', error);
     });
   };
 
@@ -291,12 +299,64 @@ function Peer(config, listener) {
    */
   com.createAnswer = function () {
     com.RTCPeerConnection.createAnswer(function (offer) {
-      listener('peer:create_offer_success', offer);
+      listener('peer:local_answer:success', offer);
 
       com.setLocalDescription(offer);
 
     }, function (error) {
-      listener('peer:create_offer_failure', error);
+      listener('peer:local_answer:failure', error);
+    });
+  };
+  
+  /**
+   * Sets local description.
+   * @method setLocalDescription
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.setLocalDescription = function (localDescription) {
+    var sdpLines = localDescription.sdp.split('\r\n');
+    sdpLines = SDP.removeH264Support(sdpLines);
+
+    if (fn.isSafe(function () { return com.stream.config.audio.stereo; ))) {
+      sdpLines = SDP.addStereo(sdpLines);
+    }
+    if (globals.bandwidth) {
+      sdpLines = SDP.setBitrate(sdpLines, globals.bandwidth);
+    }
+
+    localDescription.sdp = sdpLines.join('\r\n');
+    
+    com.RTCPeerConnection.setLocalDescription(localDescription, function () {
+      listener('peer:local_description:success');
+
+      if (localDescription.type === 'answer') {
+        com.RTCPeerConnection.newSignalingState = 'have-local-answer';
+      }
+
+    }, function (error) {
+      listener('peer:local_description:error', error);
+    });
+  };
+                  
+  /**
+   * Sets remote description.
+   * @method setRemoteDescription
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.setRemoteDescription = function (remoteSdp) {
+    var remoteDescription = new window.RTCSessionDescription(remoteSdp);
+    
+    com.RTCPeerConnection.setRemoteDescription(remoteDescription, function () {
+      listener('peer:remote_description:success');
+
+      if (remoteDescription.type === 'answer') {
+        com.RTCPeerConnection.newSignalingState = 'have-remote-answer';
+      }
+
+    }, function (error) {
+      listener('peer:remote_description:error', error);
     });
   };
 
@@ -307,8 +367,14 @@ function Peer(config, listener) {
    * @for Peer
    * @since 0.6.0
    */
-  com.sendStream = function (stream) {
-    com.RTCPeerConnection.addStream(stream.MediaStream || stream);
+  com.sendStream = function (stream, config) {
+    com.localStream = new Stream(stream, config, function (event, data) {
+      listener(event, data);
+
+      if (event === 'stream:start') {
+        com.RTCPeerConnection.addStream(com.stream.MediaStream);
+      }
+    });
   };
 
   // Throw an error if adapterjs is not loaded

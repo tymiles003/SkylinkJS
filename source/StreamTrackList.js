@@ -10,14 +10,15 @@
  * @since 0.6.0
  */
 var StreamTrackList = {
-  readyState: false,
+  readyState: 'new',
   audio: [],
-  video: []
+  video: [],
+  onReady: function () {}
 };
 
 // Firefox does not support MediaStreamTrack.getSources yet
 if (window.webrtcDetectedBrowser === 'firefox') {
-  StreamTrackList.readyState = true;
+  StreamTrackList.readyState = 'done';
 
 // Chrome / Plugin / Opera supports MediaStreamTrack.getSources
 } else {
@@ -42,6 +43,10 @@ if (window.webrtcDetectedBrowser === 'firefox') {
         StreamTrackList.video.push(data);
       }
     }
-    StreamTrackList.readyState = true;
+    StreamTrackList.readyState = 'done';
+    
+    if (typeof StreamTrackList.onReady === 'function') {
+      StreamTrackList.onReady(StreamTrackList);
+    }
   });
 }
