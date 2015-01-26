@@ -67,5 +67,28 @@ var fn = {
     };
     
     run(args[0]);
+  },
+  
+  clone: function (obj) {
+    if (this.isEmpty(obj) || typeof obj !== 'object') {
+      return obj;
+    }
+    var copy = obj.constructor();
+    
+    for (var attr in obj) {
+      if (obj.hasOwnProperty(attr)) {
+        copy[attr] = obj[attr];
+      }
+    }
+    return copy;
+  },
+  
+  constant: function (main, property, value) {
+    var obj = {};
+    obj[property] {
+      value: value,
+      enumerable: true
+    };
+    Object.defineProperties(main, obj);
   }
 }
