@@ -1,26 +1,28 @@
 var Event = {
   listeners: {
-    on: [],
-    once: []
+    on: {},
+    once: {}
   },
   
-  timestamp = {
+  timestamp: {
     now: Date.now() || function() { return + new Date(); }
   },
   
   on: function (event, listener) {
+    this.listeners.on[event] = this.listeners.on[event] || [];
     this.listeners.on[event].push(listener);
   },
   
   once: function (event, listener) {
+    this.listeners.once[event] = this.listeners.once[event] || [];
     this.listeners.once[event].push(listener);
   },
   
   off: function (event, listener) {
     if (fn.isEmpty(event)) {
       // Remove all listeners
-      this.listeners.on = [];
-      this.listeners.once = [];
+      this.listeners.on = {};
+      this.listeners.once = {};
       return;
     }
     
@@ -28,8 +30,8 @@ var Event = {
       // Get all the listeners from event
       // Remove individual listeners
       // If signature is the same as provided callback, remove.
-      this.remove( this.listeners.on[event], listener );
-      this.remove( this.listeners.once[event], listener );
+      this.remove( this.listeners.on[event] || {}, listener );
+      this.remove( this.listeners.once[event] || {}, listener );
 
     } else {
       // Remove listeners attached to event
@@ -40,8 +42,10 @@ var Event = {
   
   respond: function (event) {
     var args = Array.prototype.slice.call(arguments);
-    var on = this.listeners.on[event];
-    var once = this.listeners.once[event];
+    args.shift();
+
+    var on = this.listeners.on[event] || {};
+    var once = this.listeners.once[event] || {};
     
     this.trigger(on, args);
     this.trigger(once, args);
@@ -50,7 +54,6 @@ var Event = {
   },
 
   trigger: function (listeners, args) {
-    args.shift();
     var i;
 
     for (i = 0; i < listeners.length; i += 1) {

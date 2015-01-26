@@ -131,7 +131,7 @@ var EventList = [
    *    change.
    * @since 0.5.5
    */
-  'peerConnectionHealth: [],
+  'peerConnectionHealth',
 
   /**
    * Event fired when an ICE connection state has changed.
