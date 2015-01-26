@@ -61,7 +61,7 @@ var Event = {
         listeners[i].apply(this, args);
         
       } catch(error) {
-        console.warn('Exception occurred in event:', error);
+        throw error;
       }
     }
   },
