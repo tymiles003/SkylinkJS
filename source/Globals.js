@@ -85,7 +85,7 @@ var fn = {
   
   constant: function (main, property, value) {
     var obj = {};
-    obj[property] {
+    obj[property] = {
       value: value,
       enumerable: true
     };
