@@ -31,16 +31,6 @@ function Peer(config, listener) {
   com.userId = config.userId;
 
   /**
-   * The peer type.
-   * @attribute type
-   * @type String
-   * @private
-   * @for Peer
-   * @since 0.6.0
-   */
-  com.type = 'streaming';
-  
-  /**
    * The peer readyState.
    * @attribute readyState
    * @type String
@@ -363,18 +353,38 @@ function Peer(config, listener) {
   /**
    * Sends the local MediaStream object to peer.
    * @method streamStream
+   * @param {Stream} stream The stream object to send.
    * @trigger StreamJoined, mediaAccessRequired
    * @for Peer
    * @since 0.6.0
    */
-  com.sendStream = function (stream, config) {
-    com.localStream = new Stream(stream, config, function (event, data) {
-      listener(event, data);
+  com.sendStream = function (streamId, config) {
+    com.RTCPeerConnection.addStream(stream.MediaStream);
+  };
+  
+  /**
+   * Sends the local MediaStream object to peer.
+   * @method streamStream
+   * @param {Stream} stream The stream object to send.
+   * @trigger StreamJoined, mediaAccessRequired
+   * @for Peer
+   * @since 0.6.0
+   */
+  com.createDataChannel = function (transferId) {
+    if (fn.isEmpty(transferId)) {
+      com.datachannels.main = new DataChannel(com, {
+        id: com.id
+      }, function (event, data) {
+        listener(event, data);
+      });
 
-      if (event === 'stream:start') {
-        com.RTCPeerConnection.addStream(com.stream.MediaStream);
-      }
-    });
+    } else {
+      com.datachannels[transferId] = new DataChannel(com, {
+        id: transferId
+      }, function (event, data) {
+        listener(event, data);
+      });
+    }
   };
 
   // Throw an error if adapterjs is not loaded
